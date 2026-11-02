@@ -1,0 +1,49 @@
+services:
+  bob_mossimg:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_DISTRO: humble
+    container_name: bob_mossimg
+    network_mode: host
+    ipc: host
+    pid: host
+    user: "${MOSSIMG_UID:-1000}:${MOSSIMG_GID:-1000}"
+    environment:
+      - HOME=/tmp
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-55}
+      - MOSSIMG_REPO_ID=${MOSSIMG_REPO_ID:-OpenMOSS-Team/MOSS-Image-SFT}
+      - MOSSIMG_MODEL_DIR=/app/models
+      - MOSSIMG_DEVICE=${MOSSIMG_DEVICE:-cuda:0}
+      - MOSSIMG_PROMPT=${MOSSIMG_PROMPT:-}
+      - MOSSIMG_ONCE=${MOSSIMG_ONCE:-false}
+      - MOSSIMG_IMAGE_PATH=${MOSSIMG_IMAGE_PATH:-/app/generated_images/auto}
+      - MOSSIMG_SEED=${MOSSIMG_SEED:--1}
+      - MOSSIMG_IMAGE_COUNTER_START=${MOSSIMG_IMAGE_COUNTER_START:-1}
+      - MOSSIMG_HEIGHT=${MOSSIMG_HEIGHT:-1024}
+      - MOSSIMG_WIDTH=${MOSSIMG_WIDTH:-1024}
+      - MOSSIMG_NUM_STEPS=${MOSSIMG_NUM_STEPS:-50}
+      - MOSSIMG_GUIDANCE=${MOSSIMG_GUIDANCE:-3.0}
+      - MOSSIMG_NUM_IMAGES=${MOSSIMG_NUM_IMAGES:-1}
+      - MOSSIMG_MAX_SEQ=${MOSSIMG_MAX_SEQ:-4096}
+      - MOSSIMG_UNCOND_SKIP_LAYERS=${MOSSIMG_UNCOND_SKIP_LAYERS:-22}
+      - MOSSIMG_FRAME_ID=${MOSSIMG_FRAME_ID:-mossimg}
+      - MOSSIMG_KEEP_LOADED=${MOSSIMG_KEEP_LOADED:-false}
+      - MOSSIMG_CPU_OFFLOAD=${MOSSIMG_CPU_OFFLOAD:-true}
+      - MOSSIMG_SEQUENTIAL_OFFLOAD=${MOSSIMG_SEQUENTIAL_OFFLOAD:-false}
+      - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+      - ./models:/app/models
+      - ./generated_images:/app/generated_images
+      - ./config:/app/ros2_ws/src/bob_mossimg/config
+      - ./bob_mossimg:/app/ros2_ws/src/bob_mossimg/bob_mossimg
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    restart: unless-stopped
+    command: ["ros2", "run", "bob_mossimg", "tti", "--ros-args", "-r", "__ns:=/mossimg", "--params-file", "/app/ros2_ws/src/bob_mossimg/config/tti.yaml"]

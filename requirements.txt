@@ -1,0 +1,17 @@
+# torch is pinned to the version preinstalled in the Dockerfile (cu128 layer),
+# so `pip install -r` never re-resolves or re-downloads the CUDA stack.
+# Host installs get the matching PyPI build of the same version.
+torch==2.11.0
+# MOSS-Image ships as a custom diffusers pipeline (trust_remote_code)
+diffusers>=0.38
+transformers>=5.3
+accelerate>=1.10
+safetensors>=0.6
+sentencepiece
+protobuf
+numpy<2.0
+opencv-python
+Pillow>=10
+huggingface_hub
+# cv_bridge is provided by the system ROS 2 install (apt: ros-$ROS_DISTRO-cv-bridge),
+# not by an official PyPI package; there is only an unofficial ROS 1 stub on PyPI.
